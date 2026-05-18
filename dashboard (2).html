@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Dashboard</title>
+<link rel="manifest" href="data:application/json,{}">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --bg4: #22222f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f0f8;
+    --text2: #8888aa;
+    --text3: #555570;
+    --accent: #7c6fff;
+    --accent2: #ff6b9d;
+    --accent3: #00d4aa;
+    --accent4: #ffb347;
+    --accent5: #4fc3f7;
+    --red: #ff4757;
+    --green: #2ed573;
+    --card-r: 14px;
+  }
+  .light {
+    --bg: #f0f0f8;
+    --bg2: #e8e8f4;
+    --bg3: #dcdcee;
+    --bg4: #d0d0e4;
+    --border: rgba(0,0,0,0.07);
+    --border2: rgba(0,0,0,0.14);
+    --text: #111118;
+    --text2: #555570;
+    --text3: #9999bb;
+    --card-r: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; transition: background 0.3s, color 0.3s; }
+
+  /* TICKER */
+  .ticker-wrap { background: var(--bg2); border-bottom: 1px solid var(--border); overflow: hidden; height: 36px; display: flex; align-items: center; position: sticky; top: 0; z-index: 100; }
+  .ticker-label { background: var(--accent); color: #fff; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; padding: 0 12px; height: 36px; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.08em; }
+  .ticker-track { display: flex; animation: ticker 35s linear infinite; white-space: nowrap; }
+  .ticker-track:hover { animation-play-state: paused; }
+  .ticker-item { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); padding: 0 32px; white-space: nowrap; }
+  .ticker-item.alert { color: var(--red); }
+  .ticker-item.ok { color: var(--green); }
+  .ticker-item.warn { color: var(--accent4); }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+  /* NAV */
+  .nav { display: flex; align-items: center; gap: 4px; padding: 12px 20px; background: var(--bg); border-bottom: 1px solid var(--border); overflow-x: auto; position: sticky; top: 36px; z-index: 99; }
+  .nav-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text2); background: none; border: 1px solid transparent; border-radius: 8px; padding: 6px 14px; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+  .nav-btn:hover { color: var(--text); background: var(--bg3); }
+  .nav-btn.active { color: var(--text); background: var(--bg3); border-color: var(--border2); }
+  .nav-spacer { flex: 1; }
+  .theme-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; color: var(--text2); font-size: 13px; transition: all 0.2s; }
+  .theme-btn:hover { color: var(--text); }
+
+  /* MAIN */
+  main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-r); padding: 18px; margin-bottom: 16px; }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 700px) { .grid2, .grid3, .grid4 { grid-template-columns: 1fr; } }
+
+  /* STAT */
+  .stat { background: var(--bg3); border-radius: 10px; padding: 14px; text-align: center; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: var(--text); line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--text3); margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .stat-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  /* STREAK */
+  .streak-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--accent4), #ff6b00); border-radius: 20px; padding: 4px 12px; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: #fff; }
+
+  /* PROGRESS BAR */
+  .prog-wrap { background: var(--bg4); border-radius: 100px; height: 8px; overflow: hidden; margin: 6px 0; }
+  .prog-bar { height: 100%; border-radius: 100px; transition: width 0.5s ease; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+  .btn:hover { background: var(--bg4); border-color: var(--accent); color: var(--accent); }
+  .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-accent:hover { opacity: 0.85; color: #fff; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-icon { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; transition: all 0.2s; font-size: 16px; }
+  .btn-icon:hover { color: var(--text); border-color: var(--border2); }
+
+  /* INPUTS */
+  input, select, textarea { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; width: 100%; transition: border 0.2s; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input[type=checkbox] { width: auto; accent-color: var(--accent); }
+  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
+  .form-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 10px; }
+  .form-group { flex: 1; min-width: 120px; }
+
+  /* PILL */
+  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 500; }
+  .pill-green { background: rgba(46,213,115,0.15); color: var(--green); }
+  .pill-red { background: rgba(255,71,87,0.15); color: var(--red); }
+  .pill-amber { background: rgba(255,179,71,0.15); color: var(--accent4); }
+  .pill-blue { background: rgba(79,195,247,0.15); color: var(--accent5); }
+  .pill-purple { background: rgba(124,111,255,0.15); color: var(--accent); }
+
+  /* SUPPLEMENT CHECK */
+  .supp-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg3); border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border); transition: all 0.2s; }
+  .supp-item.missed { border-color: var(--red); background: rgba(255,71,87,0.07); }
+  .supp-item.done { opacity: 0.5; }
+  .supp-check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
+  .supp-check.checked { background: var(--accent); border-color: var(--accent); }
+  .supp-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .supp-time { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+  /* WEIGHT CHART */
+  .weight-entry { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg3); border-radius: 8px; margin-bottom: 6px; }
+  .weight-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); }
+  .weight-val { font-size: 15px; font-weight: 600; }
+
+  /* GYM */
+  .exercise-item { background: var(--bg3); border-radius: 10px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); }
+  .exercise-name { font-weight: 600; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .set-row { display: grid; grid-template-columns: 40px 1fr 1fr 1fr 32px; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .set-num { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); text-align: center; }
+  .pr-badge { background: linear-gradient(135deg, var(--accent4), #ff6b00); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.05em; }
+
+  /* FINANCE */
+  .asset-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .asset-row:last-child { border-bottom: none; }
+  .asset-name { font-size: 13px; }
+  .asset-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--text); }
+  .pie-wrap { position: relative; margin: 0 auto; }
+
+  /* SLEEP */
+  .sleep-bar-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .sleep-bar { flex: 1; height: 6px; background: var(--bg4); border-radius: 100px; overflow: hidden; }
+  .sleep-bar-fill { height: 100%; background: var(--accent5); border-radius: 100px; }
+
+  /* MACRO */
+  .macro-circle { width: 80px; height: 80px; position: relative; }
+  .macro-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+  .macro-label { font-size: 11px; color: var(--text3); }
+  .meal-item { padding: 10px 12px; background: var(--bg3); border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .meal-macros { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); }
+
+  /* JOURNAL */
+  .journal-entry { padding: 14px; background: var(--bg3); border-radius: 10px; margin-bottom: 10px; border-left: 3px solid var(--accent); }
+  .journal-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+  .journal-text { font-size: 13px; line-height: 1.6; }
+
+  /* AI CHAT */
+  .chat-wrap { height: 420px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: var(--bg3); border-radius: 10px; margin-bottom: 12px; }
+  .chat-msg { max-width: 80%; }
+  .chat-msg.user { align-self: flex-end; background: var(--accent); color: #fff; padding: 10px 14px; border-radius: 14px 14px 4px 14px; font-size: 13px; line-height: 1.5; }
+  .chat-msg.ai { align-self: flex-start; background: var(--bg4); color: var(--text); padding: 10px 14px; border-radius: 4px 14px 14px 14px; font-size: 13px; line-height: 1.5; border: 1px solid var(--border); }
+  .chat-input-wrap { display: flex; gap: 10px; }
+  .typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; background: var(--bg4); border-radius: 4px 14px 14px 14px; align-self: flex-start; }
+  .typing span { width: 6px; height: 6px; background: var(--text3); border-radius: 50%; animation: bounce 1s infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+  /* QUOTE */
+  .quote-card { background: linear-gradient(135deg, rgba(124,111,255,0.15), rgba(255,107,157,0.1)); border: 1px solid rgba(124,111,255,0.2); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; }
+  .quote-text { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; line-height: 1.4; color: var(--text); }
+  .quote-author { font-size: 12px; color: var(--text3); margin-top: 8px; }
+  .quote-mark { position: absolute; top: -10px; right: 16px; font-size: 80px; color: var(--accent); opacity: 0.15; font-family: serif; line-height: 1; }
+
+  /* SAVINGS GOAL */
+  .goal-bar { height: 12px; background: var(--bg4); border-radius: 100px; overflow: hidden; margin: 8px 0; }
+  .goal-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent3), var(--accent5)); border-radius: 100px; transition: width 0.6s ease; }
+
+  /* PHOTO ANALYSIS */
+  .photo-drop { border: 2px dashed var(--border2); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; color: var(--text3); }
+  .photo-drop:hover { border-color: var(--accent); color: var(--accent); background: rgba(124,111,255,0.05); }
+  .photo-preview { max-width: 100%; border-radius: 8px; margin: 10px 0; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  /* SEPARATOR */
+  .sep { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* NOTIFICATION dot */
+  .notif-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; display: inline-block; }
+
+  /* CHART.js canvas wrapper */
+  .chart-wrap { position: relative; height: 200px; width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-label">◆ LIVE</div>
+  <div style="overflow:hidden;flex:1">
+    <div class="ticker-track" id="tickerTrack">
+      <!-- items injected by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showTab('overview')">⚡ Overview</button>
+  <button class="nav-btn" onclick="showTab('health')">🫀 Health</button>
+  <button class="nav-btn" onclick="showTab('gym')">🏋️ Gym</button>
+  <button class="nav-btn" onclick="showTab('nutrition')">🍽️ Nutrition</button>
+  <button class="nav-btn" onclick="showTab('finance')">💰 Finance</button>
+  <button class="nav-btn" onclick="showTab('journal')">📓 Journal</button>
+  <button class="nav-btn" onclick="showTab('assistant')">🤖 AI Assistant</button>
+  <button class="nav-btn" onclick="showTab('stocks')">📈 Stocks</button>
+  <button class="nav-btn" onclick="showTab('reminders')">🔔 Reminders</button>
+  <div class="nav-spacer"></div>
+  <button class="theme-btn" onclick="toggleTheme()">☀️ / 🌙</button>
+</nav>
+
+<main>
+
+<!-- ═══════════════ OVERVIEW TAB ═══════════════ -->
+<div id="tab-overview" class="tab active">
+
+  <!-- Motivational Quote -->
+  <div class="quote-card" style="margin-bottom:16px">
+    <div class="quote-mark">"</div>
+    <div class="quote-text" id="quoteText">Loading...</div>
+    <div class="quote-author" id="quoteAuthor"></div>
+  </div>
+
+  <!-- Streaks -->
+  <div class="card">
+    <div class="card-title">🔥 Active Streaks</div>
+    <div class="grid3" id="streakGrid"></div>
+  </div>
+
+  <!-- Today's Snapshot -->
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">💧 Water Today</div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div>
+          <div class="stat-val" id="overviewWater">0</div>
+          <div class="stat-label">/ <span id="overviewWaterGoal">2500</span>ml</div>
+        </div>
+        <div style="flex:1">
+          <div class="prog-wrap"><div class="prog-bar" id="overviewWaterBar" style="background:var(--accent5);width:0%"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-sm" onclick="addWater(250)">+250ml</button>
+        <button class="btn btn-sm" onclick="addWater(500)">+500ml</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">😴 Last Night</div>
+      <div id="overviewSleep" style="font-size:13px;color:var(--text2)">No sleep logged</div>
+    </div>
+  </div>
+
+  <!-- Custom Ticker Messages -->
+  <div class="card">
+    <div class="card-title">📌 Custom Ticker Messages</div>
+    <div class="form-row">
+      <div class="form-group"><input type="text" id="customTickerInput" placeholder="Add a custom message to the ticker..." /></div>
+      <button class="btn btn-accent" onclick="addCustomTicker()">Pin to Ticker</button>
+    </div>
+    <div id="customTickerList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
+  </div>
+
+  <!-- Net Worth Snapshot -->
+  <div class="card">
+    <div class="card-title">📊 Net Worth Snapshot</div>
+    <div class="grid4" id="netWorthSnapshot"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ HEALTH TAB ═══════════════ -->
+<div id="tab-health" class="tab">
+
+  <!-- Sleep Tracker -->
+  <div class="card">
+    <div class="card-title">😴 Sleep Tracker</div>
+    <div class="grid2">
+      <div>
+        <div class="form-row">
+          <div class="form-group"><label>Bedtime</label><input type="time" id="sleepBed" value="23:00"/></div>
+          <div class="form-group"><label>Wake time</label><input type="time" id="sleepWake" value="07:00"/></div>
+        </div>
+        <button class="btn btn-accent" onclick="logSleep()" style="width:100%">Log Sleep</button>
+      </div>
+      <div>
+        <div class="stat-val" id="sleepHours" style="color:var(--accent5)">—</div>
+        <div class="stat-label">hours last night</div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text2)">7-day avg: <span id="sleepAvg" style="color:var(--text);font-weight:600">—</span></div>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="card-title" style="margin-bottom:10px">Recent Sleep</div>
+    <div id="sleepLog"></div>
+  </div>
+
+  <!-- Water -->
+  <div class="card">
+    <div class="card-title">💧 Water Intake</div>
+    <div class="grid2">
+      <div>
+        <div class="stat-val" id="waterToday" style="color:var(--accent5)">0</div>
+        <div class="stat-label">ml consumed</div>
+        <div class="prog-wrap" style="margin-top:10px"><div class="prog-bar" id="waterBar" style="background:var(--accent5);width:0%"></div></div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">Goal: <span id="waterGoalDisp">2500</span>ml</div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="addWater(200)">+200ml</button>
+          <button class="btn btn-sm" onclick="addWater(250)">+250ml</button>
+          <button class="btn btn-sm" onclick="addWater(500)">+500ml</button>
+          <button class="btn btn-sm" onclick="addWater(750)">+750ml</button>
+        </div>
+      </div>
+      <div>
+        <div class="card-title" style="margin-bottom:10px">Personalize Goal</div>
+        <div class="form-group" style="margin-bottom:8px"><label>Weight (kg)</label><input type="number" id="settingWeight" placeholder="70" onchange="calcWaterGoal()"/></div>
+        <div class="form-group" style="margin-bottom:8px"><label>Activity level</label>
+          <select id="settingActivity" onchange="calcWaterGoal()">
+            <option value="1">Sedentary</option><option value="1.1">Light</option>
+            <option value="1.2" selected>Moderate</option><option value="1.35">Very Active</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0"><label>Daily caffeine (mg)</label><input type="number" id="settingCaffeine" placeholder="200" onchange="calcWaterGoal()"/></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supplements -->
+  <div class="card">
+    <div class="card-title">💊 Supplements</div>
+    <div class="grid3">
+      <div>
+        <div class="pill pill-amber" style="margin-bottom:10px">🌅 Morning</div>
+        <div id="suppMorning"></div>
+      </div>
+      <div>
+        <div class="pill pill-blue" style="margin-bottom:10px">☀️ Afternoon</div>
+        <div id="suppAfternoon"></div>
+      </div>
+      <div>
+        <div class="pill pill-purple" style="margin-bottom:10px">🌙 Evening</div>
+        <div id="suppEvening"></div>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="card-title" style="margin-bottom:10px">Add Supplement</div>
+    <div class="form-row">
+      <div class="form-group"><input type="text" id="newSuppName" placeholder="Supplement name"/></div>
+      <div class="form-group" style="max-width:130px">
+        <select id="newSuppTime">
+          <option value="morning">Morning</option>
+          <option value="afternoon">Afternoon</option>
+          <option value="evening">Evening</option>
+        </select>
+      </div>
+      <button class="btn btn-accent" onclick="addSupplement()">Add</button>
+    </div>
+  </div>
+
+  <!-- Weight Tracker -->
+  <div class="card">
+    <div class="card-title">⚖️ Weight Tracker</div>
+    <div class="grid2">
+      <div>
+        <div class="form-row">
+          <div class="form-group"><label>Weight (kg)</label><input type="number" id="weightInput" placeholder="75.0" step="0.1"/></div>
+          <button class="btn btn-accent" onclick="logWeight()" style="align-self:flex-end">Log</button>
+        </div>
+        <div class="chart-wrap"><canvas id="weightChart" role="img" aria-label="Weight over time line chart">Weight tracking chart</canvas></div>
+      </div>
+      <div>
+        <div class="card-title" style="margin-bottom:10px">History</div>
+        <div id="weightLog" style="max-height:250px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Height Tracker -->
+  <div class="card">
+    <div class="card-title">📏 Height Tracker</div>
+    <div class="grid2">
+      <div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Unit</label>
+            <select id="heightUnit" onchange="renderHeightUI()">
+              <option value="cm">Centimeters (cm)</option>
+              <option value="ft">Feet &amp; Inches</option>
+            </select>
+          </div>
+        </div>
+        <div id="heightInputArea">
+          <div class="form-row">
+            <div class="form-group"><label>Height (cm)</label><input type="number" id="heightCm" placeholder="175" step="0.1"/></div>
+            <button class="btn btn-accent" onclick="logHeight()" style="align-self:flex-end">Log</button>
+          </div>
+        </div>
+        <div style="margin-top:10px;background:var(--bg3);border-radius:10px;padding:12px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">BMI (using latest weight)</div>
+          <div style="font-size:22px;font-weight:700" id="bmiVal">—</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px" id="bmiLabel">Log both weight and height</div>
+        </div>
+      </div>
+      <div>
+        <div class="card-title" style="margin-bottom:10px">Height History</div>
+        <div id="heightLog" style="max-height:250px;overflow-y:auto"></div>
+        <div style="margin-top:12px">
+          <div class="chart-wrap" style="height:160px"><canvas id="heightChart" role="img" aria-label="Height over time">Height chart</canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ GYM TAB ═══════════════ -->
+<div id="tab-gym" class="tab">
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">🏋️ Today's Workout</div>
+      <div class="form-row">
+        <div class="form-group"><input type="text" id="exerciseInput" placeholder="Exercise name (e.g. Bench Press)"/></div>
+        <button class="btn btn-accent" onclick="addExercise()">Add Exercise</button>
+      </div>
+      <div id="exerciseList"></div>
+      <div class="sep"></div>
+      <button class="btn" style="width:100%" onclick="saveWorkout()">💾 Save Workout Session</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🏆 Personal Records</div>
+      <div id="prList" style="font-size:13px"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📅 Workout History</div>
+    <div id="workoutHistory"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ NUTRITION TAB ═══════════════ -->
+<div id="tab-nutrition" class="tab">
+
+  <!-- Daily Macros Summary -->
+  <div class="card">
+    <div class="card-title">🎯 Today's Macros</div>
+    <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div class="macro-val" id="calTotal" style="color:var(--accent4)">0</div>
+        <div class="macro-label">kcal</div>
+      </div>
+      <div style="flex:1">
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Protein</span><span id="proteinVal">0g</span></div>
+          <div class="prog-wrap"><div class="prog-bar" id="proteinBar" style="background:var(--red);width:0%"></div></div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Carbs</span><span id="carbsVal">0g</span></div>
+          <div class="prog-wrap"><div class="prog-bar" id="carbsBar" style="background:var(--accent4);width:0%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Fat</span><span id="fatVal">0g</span></div>
+          <div class="prog-wrap"><div class="prog-bar" id="fatBar" style="background:var(--accent5);width:0%"></div></div>
+        </div>
+      </div>
+      <div style="text-align:center;min-width:80px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Goals</div>
+        <div style="font-size:12px;color:var(--text2)">Cal: <input type="number" id="calGoal" value="2200" style="width:60px;padding:2px 6px;font-size:12px"/></div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">P: <input type="number" id="proteinGoal" value="150" style="width:50px;padding:2px 6px;font-size:12px"/>g</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">C: <input type="number" id="carbsGoal" value="250" style="width:50px;padding:2px 6px;font-size:12px"/>g</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">F: <input type="number" id="fatGoal" value="70" style="width:50px;padding:2px 6px;font-size:12px"/>g</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Food Entry -->
+  <div class="card">
+    <div class="card-title">✏️ Log Food Manually</div>
+    <div class="form-row">
+      <div class="form-group"><label>Food name</label><input type="text" id="foodName" placeholder="e.g. Chicken breast"/></div>
+      <div class="form-group" style="max-width:80px"><label>Calories</label><input type="number" id="foodCal" placeholder="200"/></div>
+      <div class="form-group" style="max-width:70px"><label>Protein (g)</label><input type="number" id="foodProtein" placeholder="30"/></div>
+      <div class="form-group" style="max-width:70px"><label>Carbs (g)</label><input type="number" id="foodCarbs" placeholder="0"/></div>
+      <div class="form-group" style="max-width:70px"><label>Fat (g)</label><input type="number" id="foodFat" placeholder="5"/></div>
+      <button class="btn btn-accent" onclick="logFood()" style="align-self:flex-end">Log</button>
+    </div>
+  </div>
+
+  <!-- AI Food Photo -->
+  <div class="card">
+    <div class="card-title">📸 AI Food Photo Tracker</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Take or upload a photo of your food — Claude will estimate the macros and you can adjust before logging.</p>
+    <div class="photo-drop" id="photoDropZone" onclick="document.getElementById('foodPhotoInput').click()">
+      <div style="font-size:32px;margin-bottom:8px">📷</div>
+      <div>Click to upload food photo</div>
+      <div style="font-size:11px;margin-top:4px">or drag and drop</div>
+    </div>
+    <input type="file" id="foodPhotoInput" accept="image/*" style="display:none" onchange="analyzeFood(event)"/>
+    <img id="foodPhotoPreview" class="photo-preview" style="display:none"/>
+    <div id="foodAnalysisResult" style="margin-top:12px"></div>
+  </div>
+
+  <!-- Meal Log -->
+  <div class="card">
+    <div class="card-title">📋 Today's Meals</div>
+    <div id="mealLog"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ FINANCE TAB ═══════════════ -->
+<div id="tab-finance" class="tab">
+
+  <div class="grid2">
+    <!-- Assets -->
+    <div class="card">
+      <div class="card-title">💼 Assets</div>
+      <div id="assetList"></div>
+      <div class="sep"></div>
+      <div class="form-row">
+        <div class="form-group"><input type="text" id="assetName" placeholder="Asset name"/></div>
+        <div class="form-group" style="max-width:120px"><input type="number" id="assetVal" placeholder="Value ($)"/></div>
+        <div class="form-group" style="max-width:120px">
+          <select id="assetType">
+            <option value="cash">Cash</option>
+            <option value="invest">Investments</option>
+            <option value="crypto">Crypto</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <button class="btn btn-accent" onclick="addAsset()">Add</button>
+      </div>
+    </div>
+
+    <!-- Net Worth Summary -->
+    <div class="card">
+      <div class="card-title">📊 Net Worth</div>
+      <div class="stat-val" id="netWorthTotal" style="color:var(--green);font-size:36px">$0</div>
+      <div class="stat-label" style="margin-bottom:16px">Total net worth</div>
+      <div style="background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:4px">1% Rule Check</div>
+        <div style="font-size:18px;font-weight:700;color:var(--accent4)" id="onePercent">$0</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Is your purchase within 1% of net worth?</div>
+      </div>
+      <div class="chart-wrap" style="height:180px"><canvas id="pieChart" role="img" aria-label="Asset allocation pie chart">Asset allocation</canvas></div>
+    </div>
+  </div>
+
+  <!-- Income -->
+  <div class="card">
+    <div class="card-title">💵 Income</div>
+    <div class="form-row">
+      <div class="form-group"><input type="text" id="incomeName" placeholder="Source (e.g. Paycheck)"/></div>
+      <div class="form-group" style="max-width:150px"><input type="number" id="incomeAmt" placeholder="Amount ($)"/></div>
+      <button class="btn btn-accent" onclick="addIncome()">Log Income</button>
+    </div>
+    <div id="incomeList"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      <span style="font-size:13px;color:var(--text2)">Monthly income</span>
+      <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:600;color:var(--green)" id="totalIncome">$0</span>
+    </div>
+  </div>
+
+  <!-- Subscriptions -->
+  <div class="card">
+    <div class="card-title">🔁 Subscriptions</div>
+    <div class="form-row">
+      <div class="form-group"><input type="text" id="subName" placeholder="Service name"/></div>
+      <div class="form-group" style="max-width:120px"><input type="number" id="subAmt" placeholder="$/month"/></div>
+      <div class="form-group" style="max-width:120px"><label>Next billing</label><input type="date" id="subDate"/></div>
+      <button class="btn btn-accent" onclick="addSubscription()">Add</button>
+    </div>
+    <div id="subList"></div>
+  </div>
+
+  <!-- Savings Goals -->
+  <div class="card">
+    <div class="card-title">🎯 Savings Goals</div>
+    <div class="form-row">
+      <div class="form-group"><input type="text" id="goalName" placeholder="Goal (e.g. Save $10k)"/></div>
+      <div class="form-group" style="max-width:130px"><input type="number" id="goalTarget" placeholder="Target ($)"/></div>
+      <div class="form-group" style="max-width:130px"><input type="number" id="goalCurrent" placeholder="Current ($)"/></div>
+      <div class="form-group" style="max-width:140px"><label>Deadline</label><input type="date" id="goalDeadline"/></div>
+      <button class="btn btn-accent" onclick="addGoal()">Add Goal</button>
+    </div>
+    <div id="goalList"></div>
+  </div>
+
+  <!-- Cash Flow -->
+  <div class="card">
+    <div class="card-title">📈 Monthly Cash Flow</div>
+    <div class="grid3" id="cashFlow"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ JOURNAL TAB ═══════════════ -->
+<div id="tab-journal" class="tab">
+  <div class="card">
+    <div class="card-title">📓 New Entry</div>
+    <div class="form-row">
+      <div class="form-group">
+        <select id="journalType">
+          <option value="journal">Daily Journal</option>
+          <option value="pr">Personal Record 🏆</option>
+          <option value="mood">Mood Check-in</option>
+          <option value="note">Quick Note</option>
+        </select>
+      </div>
+    </div>
+    <textarea id="journalInput" placeholder="Write your thoughts, PRs, how you felt..." rows="5" style="margin-bottom:10px"></textarea>
+    <button class="btn btn-accent" onclick="addJournalEntry()">Save Entry</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📚 Journal History</div>
+    <div id="journalList"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ ASSISTANT TAB ═══════════════ -->
+<div id="tab-assistant" class="tab">
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px">🤖</div>
+      <div>
+        <div style="font-weight:600;font-size:14px">Claude AI Assistant</div>
+        <div style="font-size:12px;color:var(--text3)">Your personal health, fitness & finance coach</div>
+      </div>
+    </div>
+    <div class="chat-wrap" id="chatMessages">
+      <div class="chat-msg ai">Hey! I'm your personal dashboard assistant. I can help you with workout plans, nutrition advice, finance questions, and anything else on your dashboard. What's on your mind? 💪</div>
+    </div>
+    <div style="padding:16px;border-top:1px solid var(--border)">
+      <div class="chat-input-wrap">
+        <input type="text" id="chatInput" placeholder="Ask anything about your health, gym, finances..." onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="btn btn-accent" onclick="sendChat()">Send</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="quickChat('Give me a workout plan for today')">Workout plan</button>
+        <button class="btn btn-sm" onclick="quickChat('Analyze my nutrition today and give advice')">Nutrition advice</button>
+        <button class="btn btn-sm" onclick="quickChat('Tips to improve my sleep quality')">Sleep tips</button>
+        <button class="btn btn-sm" onclick="quickChat('How should I manage my finances better?')">Finance tips</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STOCKS TAB ═══════════════ -->
+<div id="tab-stocks" class="tab">
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">📈 Stock Watchlist</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="stockPeriodBtns">
+        <button class="btn btn-sm active-period" data-period="1D" onclick="setStockPeriod('1D',this)">1D</button>
+        <button class="btn btn-sm" data-period="7D" onclick="setStockPeriod('7D',this)">7D</button>
+        <button class="btn btn-sm" data-period="1M" onclick="setStockPeriod('1M',this)">1M</button>
+        <button class="btn btn-sm" data-period="1Y" onclick="setStockPeriod('1Y',this)">1Y</button>
+      </div>
+      <div style="flex:1;min-width:200px;display:flex;gap:8px">
+        <input type="text" id="stockSearchInput" placeholder="Add ticker (e.g. TSLA, META)" style="flex:1"/>
+        <button class="btn btn-accent" onclick="addWatchlistStock()">Add</button>
+      </div>
+      <button class="btn btn-sm" onclick="loadAllStocks()" style="white-space:nowrap">⟳ Refresh</button>
+    </div>
+    <div id="stockLoading" style="display:none;font-size:13px;color:var(--text3);padding:8px 0">Fetching prices...</div>
+    <div id="stockError" style="display:none;font-size:13px;color:var(--red);padding:8px 0;background:rgba(255,71,87,0.08);border-radius:8px;padding:10px 14px;margin-bottom:10px"></div>
+    <div id="stockGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" id="stockDetailTitle">📊 Select a stock to view chart</div>
+    <div class="chart-wrap" style="height:280px"><canvas id="stockDetailChart" role="img" aria-label="Stock price chart">Stock price chart</canvas></div>
+  </div>
+</div>
+
+<!-- ═══════════════ REMINDERS TAB ═══════════════ -->
+<div id="tab-reminders" class="tab">
+
+  <div class="card" style="background:linear-gradient(135deg,rgba(124,111,255,0.12),rgba(0,212,170,0.08));border-color:rgba(124,111,255,0.2)">
+    <div class="card-title">🔔 Push Notifications</div>
+    <div id="notifStatus" style="font-size:13px;color:var(--text2);margin-bottom:12px">Checking notification permission...</div>
+    <button class="btn btn-accent" id="notifEnableBtn" onclick="enableNotifications()" style="display:none">Enable Push Notifications</button>
+    <div style="font-size:12px;color:var(--text3);margin-top:8px">Notifications fire even when the app is in the background. On iPhone: add to Home Screen first, then enable here.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">➕ Add Reminder</div>
+    <div class="form-row">
+      <div class="form-group"><label>Title</label><input type="text" id="remTitle" placeholder="e.g. Take creatine"/></div>
+      <div class="form-group" style="max-width:160px"><label>Time</label><input type="time" id="remTime" value="08:00"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Repeat</label>
+        <select id="remRepeat">
+          <option value="daily">Every day</option>
+          <option value="weekdays">Weekdays only</option>
+          <option value="weekends">Weekends only</option>
+          <option value="once">One time</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="remCategory">
+          <option value="health">💊 Health</option>
+          <option value="gym">🏋️ Gym</option>
+          <option value="water">💧 Water</option>
+          <option value="finance">💰 Finance</option>
+          <option value="sleep">😴 Sleep</option>
+          <option value="custom">📌 Custom</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Note (optional)</label><input type="text" id="remNote" placeholder="Additional detail..."/></div>
+    </div>
+    <button class="btn btn-accent" onclick="addReminder()">Add Reminder</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Active Reminders</div>
+    <div id="reminderList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">✅ Quick Add Common Reminders</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button class="btn btn-sm" onclick="quickReminder('Morning supplements','08:00','health')">💊 Morning Supps 8am</button>
+      <button class="btn btn-sm" onclick="quickReminder('Drink water','10:00','water')">💧 Water 10am</button>
+      <button class="btn btn-sm" onclick="quickReminder('Gym time','17:00','gym')">🏋️ Gym 5pm</button>
+      <button class="btn btn-sm" onclick="quickReminder('Evening supplements','21:00','health')">💊 Evening Supps 9pm</button>
+      <button class="btn btn-sm" onclick="quickReminder('Time to sleep','22:30','sleep')">😴 Bedtime 10:30pm</button>
+      <button class="btn btn-sm" onclick="quickReminder('Log weight','07:30','health')">⚖️ Log Weight 7:30am</button>
+      <button class="btn btn-sm" onclick="quickReminder('Check finances','09:00','finance')">💰 Finance Check 9am</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const S = {
+  water: 0, waterGoal: 2500,
+  supplements: [
+    {name:'Vitamin D3', time:'morning', checked:false},
+    {name:'Magnesium Glycinate', time:'evening', checked:false},
+    {name:'Creatine', time:'morning', checked:false},
+    {name:'L-Theanine', time:'afternoon', checked:false},
+    {name:'Omega-3', time:'morning', checked:false},
+  ],
+  weights: [],
+  heights: [],
+  sleep: [],
+  exercises: [],
+  workoutHistory: [],
+  prs: {},
+  meals: [],
+  assets: [],
+  income: [],
+  subscriptions: [],
+  goals: [],
+  journalEntries: [],
+  customTickers: [],
+  streaks: { water:0, supplements:0, workout:0, sleep:0 },
+  chatHistory: [],
+  watchlist: ['AAPL','MSFT','GOOGL','AMZN','NVDA','TSLA','META','SPY','BTC-USD','ETH-USD'],
+  reminders: [],
+};
+
+function save() { try { localStorage.setItem('dashv2', JSON.stringify(S)); } catch(e){} }
+function load() {
+  try {
+    const d = localStorage.getItem('dashv2');
+    if(d) Object.assign(S, JSON.parse(d));
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.target.classList.add('active');
+  if(name==='health') { renderWeightChart(); renderHeightChart(); calcBMI(); }
+  if(name==='finance') { renderPieChart(); }
+  if(name==='stocks') { loadAllStocks(); }
+}
+
+// ═══════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════
+function toggleTheme() {
+  document.body.classList.toggle('light');
+}
+
+// ═══════════════════════════════════════════
+// QUOTES
+// ═══════════════════════════════════════════
+const QUOTES = [
+  {text:"The secret of getting ahead is getting started.", author:"Mark Twain"},
+  {text:"It always seems impossible until it's done.", author:"Nelson Mandela"},
+  {text:"Don't watch the clock; do what it does. Keep going.", author:"Sam Levenson"},
+  {text:"Discipline is the bridge between goals and accomplishment.", author:"Jim Rohn"},
+  {text:"The body achieves what the mind believes.", author:"Napoleon Hill"},
+  {text:"The only bad workout is the one that didn't happen.", author:"Unknown"},
+  {text:"Take care of your body. It's the only place you have to live.", author:"Jim Rohn"},
+  {text:"An investment in knowledge pays the best interest.", author:"Benjamin Franklin"},
+  {text:"Success is the sum of small efforts repeated day in and day out.", author:"Robert Collier"},
+  {text:"Push yourself because no one else is going to do it for you.", author:"Unknown"},
+];
+function loadQuote() {
+  const today = new Date().toDateString();
+  const idx = today.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % QUOTES.length;
+  const q = QUOTES[idx];
+  document.getElementById('quoteText').textContent = q.text;
+  document.getElementById('quoteAuthor').textContent = '— ' + q.author;
+}
+
+// ═══════════════════════════════════════════
+// TICKER
+// ═══════════════════════════════════════════
+function buildTicker() {
+  const items = [];
+  const today = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  items.push({text: today, cls:''});
+
+  // Water
+  const wp = Math.round(S.water/S.waterGoal*100);
+  items.push({text:`💧 Water: ${S.water}ml / ${S.waterGoal}ml (${wp}%)`, cls: wp>=100?'ok':wp<50?'alert':''});
+
+  // Streaks
+  if(S.streaks.workout>0) items.push({text:`🔥 Workout streak: ${S.streaks.workout} days`, cls:'ok'});
+  if(S.streaks.water>0) items.push({text:`💧 Water streak: ${S.streaks.water} days`, cls:'ok'});
+
+  // Sleep alert
+  if(S.sleep.length>0) {
+    const last = S.sleep[S.sleep.length-1];
+    if(last.hours < 7) items.push({text:`⚠ Sleep alert: only ${last.hours.toFixed(1)}hrs last night — aim for 7+`, cls:'alert'});
+  }
+
+  // Supplements
+  const suppTotal = S.supplements.length;
+  const suppDone = S.supplements.filter(s=>s.checked).length;
+  items.push({text:`💊 Supplements: ${suppDone}/${suppTotal} taken`, cls: suppDone===suppTotal?'ok':suppDone===0?'alert':''});
+
+  // Subscriptions due soon
+  const now = new Date();
+  S.subscriptions.forEach(sub => {
+    if(!sub.date) return;
+    const d = new Date(sub.date);
+    const diff = Math.ceil((d-now)/(1000*60*60*24));
+    if(diff>=0 && diff<=3) items.push({text:`🔔 ${sub.name} billing in ${diff} day${diff===1?'':'s'} — $${sub.amount}`, cls:'warn'});
+  });
+
+  // Custom tickers
+  S.customTickers.forEach(msg => items.push({text:`📌 ${msg}`, cls:''}));
+
+  // Net worth
+  const nw = S.assets.reduce((a,b) => a+parseFloat(b.value||0), 0);
+  if(nw>0) items.push({text:`💰 Net worth: $${nw.toLocaleString()}`, cls:'ok'});
+
+  // Double for seamless loop
+  const track = document.getElementById('tickerTrack');
+  const all = [...items,...items];
+  track.innerHTML = all.map(i => `<span class="ticker-item ${i.cls}">${i.text}</span>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// STREAKS
+// ═══════════════════════════════════════════
+function renderStreaks() {
+  const grid = document.getElementById('streakGrid');
+  const streaks = [
+    {label:'Water Goal', val:S.streaks.water, icon:'💧', color:'var(--accent5)'},
+    {label:'Supplements', val:S.streaks.supplements, icon:'💊', color:'var(--accent)'},
+    {label:'Workouts', val:S.streaks.workout, icon:'🏋️', color:'var(--accent4)'},
+    {label:'Sleep 7hrs+', val:S.streaks.sleep, icon:'😴', color:'var(--accent2)'},
+    {label:'Journal', val:S.streaks.journal||0, icon:'📓', color:'var(--accent3)'},
+  ];
+  grid.innerHTML = streaks.map(s => `
+    <div class="stat">
+      <div style="font-size:22px;margin-bottom:6px">${s.icon}</div>
+      <div class="stat-val" style="color:${s.color};font-size:28px">${s.val}</div>
+      <div class="stat-label">${s.label}</div>
+      <div style="margin-top:4px"><span class="streak-badge">🔥 ${s.val} day${s.val===1?'':'s'}</span></div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════
+// WATER
+// ═══════════════════════════════════════════
+function addWater(ml) {
+  S.water += ml;
+  updateWaterUI();
+  if(S.water >= S.waterGoal) checkWaterStreak();
+  buildTicker(); save();
+}
+function updateWaterUI() {
+  const pct = Math.min(100, Math.round(S.water/S.waterGoal*100));
+  ['waterToday','overviewWater'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=S.water; });
+  ['waterBar','overviewWaterBar'].forEach(id => { const el=document.getElementById(id); if(el) el.style.width=pct+'%'; });
+  const gd=document.getElementById('waterGoalDisp'); if(gd) gd.textContent=S.waterGoal;
+  const og=document.getElementById('overviewWaterGoal'); if(og) og.textContent=S.waterGoal;
+}
+function calcWaterGoal() {
+  const w = parseFloat(document.getElementById('settingWeight').value)||70;
+  const a = parseFloat(document.getElementById('settingActivity').value)||1.2;
+  const c = parseFloat(document.getElementById('settingCaffeine').value)||0;
+  S.waterGoal = Math.round(w * 35 * a + c * 1.5);
+  updateWaterUI(); save();
+}
+function checkWaterStreak() {
+  S.streaks.water = (S.streaks.water||0) + 1;
+  renderStreaks(); save();
+}
+
+// ═══════════════════════════════════════════
+// SLEEP
+// ═══════════════════════════════════════════
+function logSleep() {
+  const bed = document.getElementById('sleepBed').value;
+  const wake = document.getElementById('sleepWake').value;
+  if(!bed||!wake) return;
+  let [bh,bm] = bed.split(':').map(Number);
+  let [wh,wm] = wake.split(':').map(Number);
+  let mins = (wh*60+wm) - (bh*60+bm);
+  if(mins<0) mins += 1440;
+  const hours = mins/60;
+  const entry = { date: new Date().toLocaleDateString(), bed, wake, hours };
+  S.sleep.push(entry);
+  if(S.sleep.length>14) S.sleep.shift();
+  if(hours>=7) S.streaks.sleep=(S.streaks.sleep||0)+1;
+  else S.streaks.sleep=0;
+  renderSleep(); renderOverviewSleep(); buildTicker(); renderStreaks(); save();
+}
+function renderSleep() {
+  const container = document.getElementById('sleepLog');
+  if(!container) return;
+  const recent = [...S.sleep].reverse().slice(0,7);
+  const avg = S.sleep.length ? (S.sleep.reduce((a,b)=>a+b.hours,0)/S.sleep.length).toFixed(1) : '—';
+  document.getElementById('sleepAvg').textContent = avg+'h';
+  const last = S.sleep[S.sleep.length-1];
+  if(last) {
+    document.getElementById('sleepHours').textContent = last.hours.toFixed(1);
+    document.getElementById('sleepHours').style.color = last.hours>=7?'var(--green)':'var(--red)';
+  }
+  container.innerHTML = recent.map(e => {
+    const pct = Math.min(100, (e.hours/10)*100);
+    return `<div class="sleep-bar-wrap">
+      <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;width:80px">${e.date}</span>
+      <div class="sleep-bar"><div class="sleep-bar-fill" style="width:${pct}%;background:${e.hours>=7?'var(--accent3)':'var(--red)'}"></div></div>
+      <span style="font-size:12px;color:${e.hours>=7?'var(--green)':'var(--red)'};font-weight:600;width:35px">${e.hours.toFixed(1)}h</span>
+    </div>`;
+  }).join('');
+}
+function renderOverviewSleep() {
+  const el = document.getElementById('overviewSleep');
+  if(!el) return;
+  if(!S.sleep.length) { el.textContent='No sleep logged'; return; }
+  const last = S.sleep[S.sleep.length-1];
+  el.innerHTML = `<div class="stat-val" style="color:${last.hours>=7?'var(--accent5)':'var(--red)'}">${last.hours.toFixed(1)}h</div>
+    <div class="stat-label">${last.bed} → ${last.wake}</div>
+    <div style="margin-top:6px">${last.hours>=7?'<span class="pill pill-green">✓ Good rest</span>':'<span class="pill pill-red">⚠ Under 7hrs</span>'}</div>`;
+}
+
+// ═══════════════════════════════════════════
+// SUPPLEMENTS
+// ═══════════════════════════════════════════
+function renderSupplements() {
+  ['morning','afternoon','evening'].forEach(time => {
+    const container = document.getElementById('supp'+time.charAt(0).toUpperCase()+time.slice(1));
+    if(!container) return;
+    const items = S.supplements.filter(s=>s.time===time);
+    container.innerHTML = items.map((s,i) => {
+      const globalIdx = S.supplements.indexOf(s);
+      return `<div class="supp-item ${s.checked?'done':''}">
+        <div class="supp-check ${s.checked?'checked':''}" onclick="toggleSupp(${globalIdx})">
+          ${s.checked?'✓':''}
+        </div>
+        <div class="supp-name">${s.name}</div>
+        <button class="btn-icon" style="font-size:12px" onclick="removeSupp(${globalIdx})">✕</button>
+      </div>`;
+    }).join('');
+  });
+  const total = S.supplements.length;
+  const done = S.supplements.filter(s=>s.checked).length;
+  if(done===total && total>0) S.streaks.supplements=(S.streaks.supplements||0)+1;
+}
+function toggleSupp(i) {
+  S.supplements[i].checked = !S.supplements[i].checked;
+  renderSupplements(); buildTicker(); save();
+}
+function removeSupp(i) {
+  S.supplements.splice(i,1);
+  renderSupplements(); save();
+}
+function addSupplement() {
+  const name = document.getElementById('newSuppName').value.trim();
+  const time = document.getElementById('newSuppTime').value;
+  if(!name) return;
+  S.supplements.push({name,time,checked:false});
+  document.getElementById('newSuppName').value='';
+  renderSupplements(); save();
+}
+
+// ═══════════════════════════════════════════
+// WEIGHT
+// ═══════════════════════════════════════════
+let weightChartInst = null;
+function logWeight() {
+  const v = parseFloat(document.getElementById('weightInput').value);
+  if(!v) return;
+  S.weights.push({date:new Date().toLocaleDateString(),value:v});
+  document.getElementById('weightInput').value='';
+  renderWeightLog(); renderWeightChart(); save();
+}
+function renderWeightLog() {
+  const el = document.getElementById('weightLog');
+  if(!el) return;
+  el.innerHTML = [...S.weights].reverse().map(w =>
+    `<div class="weight-entry">
+      <span class="weight-date">${w.date}</span>
+      <span class="weight-val">${w.value} kg</span>
+    </div>`
+  ).join('');
+}
+function renderWeightChart() {
+  const canvas = document.getElementById('weightChart');
+  if(!canvas || !S.weights.length) return;
+  if(weightChartInst) weightChartInst.destroy();
+  const labels = S.weights.map(w=>w.date);
+  const data = S.weights.map(w=>w.value);
+  // Moving average
+  const ma = data.map((v,i) => {
+    const slice = data.slice(Math.max(0,i-3),i+1);
+    return parseFloat((slice.reduce((a,b)=>a+b,0)/slice.length).toFixed(1));
+  });
+  weightChartInst = new Chart(canvas, {
+    data: {
+      labels,
+      datasets: [
+        { type:'line', label:'Weight', data, borderColor:'#7c6fff', backgroundColor:'rgba(124,111,255,0.1)', fill:true, tension:0.3, pointRadius:4 },
+        { type:'line', label:'Trend', data:ma, borderColor:'#ff6b9d', borderDash:[6,3], pointRadius:0, tension:0.3 }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{ticks:{color:'#8888aa'}}, x:{ticks:{color:'#8888aa',maxRotation:45}}} }
+  });
+}
+
+// ═══════════════════════════════════════════
+// GYM
+// ═══════════════════════════════════════════
+function addExercise() {
+  const name = document.getElementById('exerciseInput').value.trim();
+  if(!name) return;
+  S.exercises.push({name, sets:[]});
+  document.getElementById('exerciseInput').value='';
+  renderExercises();
+}
+function addSet(exIdx) {
+  const w = parseFloat(document.getElementById(`set-w-${exIdx}`).value)||0;
+  const r = parseInt(document.getElementById(`set-r-${exIdx}`).value)||0;
+  if(!w&&!r) return;
+  const ex = S.exercises[exIdx];
+  const setNum = ex.sets.length+1;
+  let isPR = false;
+  const prKey = ex.name.toLowerCase();
+  if(!S.prs[prKey] || w > S.prs[prKey]) { S.prs[prKey]=w; isPR=true; }
+  ex.sets.push({weight:w, reps:r, isPR});
+  renderExercises(); renderPRs(); save();
+}
+function removeExercise(i) {
+  S.exercises.splice(i,1);
+  renderExercises();
+}
+function renderExercises() {
+  const el = document.getElementById('exerciseList');
+  if(!el) return;
+  el.innerHTML = S.exercises.map((ex,i) => {
+    const overload = ex.sets.length>0 && ex.sets[ex.sets.length-1].reps>=8;
+    return `<div class="exercise-item">
+      <div class="exercise-name">
+        ${ex.name}
+        ${overload?'<span class="pr-badge">⬆ ADD WEIGHT</span>':''}
+        <button class="btn-icon" style="margin-left:auto;font-size:12px" onclick="removeExercise(${i})">✕</button>
+      </div>
+      ${ex.sets.map((s,si)=>`
+        <div class="set-row">
+          <div class="set-num">Set ${si+1}</div>
+          <div><span style="font-weight:600">${s.weight}kg</span></div>
+          <div><span style="color:var(--text2)">${s.reps} reps</span></div>
+          <div>${s.isPR?'<span class="pr-badge">🏆 PR!</span>':''}</div>
+          <div></div>
+        </div>`).join('')}
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <input type="number" id="set-w-${i}" placeholder="kg" style="width:70px;padding:6px 10px"/>
+        <input type="number" id="set-r-${i}" placeholder="reps" style="width:70px;padding:6px 10px"/>
+        <button class="btn btn-sm btn-accent" onclick="addSet(${i})">+ Set</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderPRs() {
+  const el = document.getElementById('prList');
+  if(!el) return;
+  const keys = Object.keys(S.prs);
+  if(!keys.length) { el.innerHTML='<div style="color:var(--text3);font-size:13px">No PRs yet — start logging sets!</div>'; return; }
+  el.innerHTML = keys.map(k=>`
+    <div class="asset-row">
+      <span style="text-transform:capitalize">${k}</span>
+      <span class="streak-badge" style="font-size:11px">🏆 ${S.prs[k]}kg</span>
+    </div>`).join('');
+}
+function saveWorkout() {
+  if(!S.exercises.length) return;
+  const session = {
+    date: new Date().toLocaleDateString(),
+    exercises: JSON.parse(JSON.stringify(S.exercises))
+  };
+  S.workoutHistory.unshift(session);
+  if(S.workoutHistory.length>30) S.workoutHistory.pop();
+  S.streaks.workout=(S.streaks.workout||0)+1;
+  S.exercises=[];
+  renderExercises(); renderWorkoutHistory(); renderStreaks(); buildTicker(); save();
+  alert('Workout saved! 💪 Streak: '+S.streaks.workout+' days');
+}
+function renderWorkoutHistory() {
+  const el = document.getElementById('workoutHistory');
+  if(!el) return;
+  if(!S.workoutHistory.length) { el.innerHTML='<div style="color:var(--text3);font-size:13px">No workout history yet.</div>'; return; }
+  el.innerHTML = S.workoutHistory.slice(0,10).map(session=>`
+    <div class="card" style="margin-bottom:10px;background:var(--bg3)">
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px">📅 ${session.date}</div>
+      ${session.exercises.map(ex=>`
+        <div style="margin-bottom:6px">
+          <span style="font-size:13px;color:var(--text)">${ex.name}</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:8px">${ex.sets.length} sets</span>
+          ${ex.sets.map(s=>`<span style="font-size:11px;background:var(--bg4);padding:2px 6px;border-radius:4px;margin-left:4px">${s.weight}kg×${s.reps}</span>`).join('')}
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// NUTRITION
+// ═══════════════════════════════════════════
+function logFood(name, cal, protein, carbs, fat) {
+  name = name || document.getElementById('foodName').value.trim();
+  cal = parseFloat(cal||document.getElementById('foodCal').value)||0;
+  protein = parseFloat(protein||document.getElementById('foodProtein').value)||0;
+  carbs = parseFloat(carbs||document.getElementById('foodCarbs').value)||0;
+  fat = parseFloat(fat||document.getElementById('foodFat').value)||0;
+  if(!name) return;
+  S.meals.push({name,cal,protein,carbs,fat,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
+  ['foodName','foodCal','foodProtein','foodCarbs','foodFat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderMacros(); renderMealLog(); save();
+}
+function renderMacros() {
+  const totCal = S.meals.reduce((a,m)=>a+m.cal,0);
+  const totP = S.meals.reduce((a,m)=>a+m.protein,0);
+  const totC = S.meals.reduce((a,m)=>a+m.carbs,0);
+  const totF = S.meals.reduce((a,m)=>a+m.fat,0);
+  document.getElementById('calTotal').textContent=Math.round(totCal);
+  document.getElementById('proteinVal').textContent=Math.round(totP)+'g';
+  document.getElementById('carbsVal').textContent=Math.round(totC)+'g';
+  document.getElementById('fatVal').textContent=Math.round(totF)+'g';
+  const cg=parseFloat(document.getElementById('calGoal').value)||2200;
+  const pg=parseFloat(document.getElementById('proteinGoal').value)||150;
+  const cag=parseFloat(document.getElementById('carbsGoal').value)||250;
+  const fg=parseFloat(document.getElementById('fatGoal').value)||70;
+  document.getElementById('proteinBar').style.width=Math.min(100,(totP/pg*100))+'%';
+  document.getElementById('carbsBar').style.width=Math.min(100,(totC/cag*100))+'%';
+  document.getElementById('fatBar').style.width=Math.min(100,(totF/fg*100))+'%';
+}
+function renderMealLog() {
+  const el = document.getElementById('mealLog');
+  if(!el) return;
+  if(!S.meals.length) { el.innerHTML='<div style="color:var(--text3);font-size:13px">No meals logged today.</div>'; return; }
+  el.innerHTML = S.meals.map((m,i)=>`
+    <div class="meal-item">
+      <div>
+        <div style="font-weight:500;font-size:13px">${m.name}</div>
+        <div class="meal-macros">${m.time} · P:${Math.round(m.protein)}g C:${Math.round(m.carbs)}g F:${Math.round(m.fat)}g</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:600;font-size:14px;color:var(--accent4)">${Math.round(m.cal)} kcal</span>
+        <button class="btn-icon" style="font-size:12px" onclick="removeMeal(${i})">✕</button>
+      </div>
+    </div>`).join('');
+}
+function removeMeal(i) { S.meals.splice(i,1); renderMacros(); renderMealLog(); save(); }
+
+// ═══════════════════════════════════════════
+// AI FOOD PHOTO
+// ═══════════════════════════════════════════
+const photoDropZone = document.getElementById('photoDropZone');
+photoDropZone.addEventListener('dragover', e=>{ e.preventDefault(); photoDropZone.style.borderColor='var(--accent)'; });
+photoDropZone.addEventListener('dragleave', ()=>{ photoDropZone.style.borderColor=''; });
+photoDropZone.addEventListener('drop', e=>{ e.preventDefault(); photoDropZone.style.borderColor=''; if(e.dataTransfer.files[0]) analyzeFood({target:{files:e.dataTransfer.files}}); });
+
+async function analyzeFood(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result.split(',')[1];
+    const preview = document.getElementById('foodPhotoPreview');
+    preview.src = e.target.result; preview.style.display='block';
+    const resultEl = document.getElementById('foodAnalysisResult');
+    resultEl.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:12px">🔍 Analyzing food with AI...</div>';
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:1000,
+          messages:[{
+            role:'user',
+            content:[
+              {type:'image', source:{type:'base64', media_type:file.type, data:base64}},
+              {type:'text', text:'Analyze this food image. Estimate the macros. Respond ONLY with valid JSON, no markdown, no extra text: {"name":"food name","calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"confidence":"low|medium|high","notes":"brief note"}'}
+            ]
+          }]
+        })
+      });
+      const data = await resp.json();
+      const text = data.content.map(c=>c.text||'').join('');
+      const clean = text.replace(/```json|```/g,'').trim();
+      const food = JSON.parse(clean);
+      resultEl.innerHTML = `
+        <div class="card" style="background:var(--bg3);margin-top:10px">
+          <div style="font-weight:600;font-size:15px;margin-bottom:10px">🍽️ ${food.name}</div>
+          <div class="grid4" style="margin-bottom:12px">
+            <div class="stat"><div class="stat-val" style="color:var(--accent4)">${Math.round(food.calories)}</div><div class="stat-label">kcal</div></div>
+            <div class="stat"><div class="stat-val" style="color:var(--red)">${Math.round(food.protein_g)}g</div><div class="stat-label">protein</div></div>
+            <div class="stat"><div class="stat-val" style="color:var(--accent4)">${Math.round(food.carbs_g)}g</div><div class="stat-label">carbs</div></div>
+            <div class="stat"><div class="stat-val" style="color:var(--accent5)">${Math.round(food.fat_g)}g</div><div class="stat-label">fat</div></div>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:10px">${food.notes} · Confidence: <span class="pill pill-${food.confidence==='high'?'green':food.confidence==='medium'?'amber':'red'}">${food.confidence}</span></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-accent" onclick="logFood('${food.name}',${food.calories},${food.protein_g},${food.carbs_g},${food.fat_g})">✓ Log This Food</button>
+            <button class="btn btn-sm" onclick="editFoodAI(${food.calories},${food.protein_g},${food.carbs_g},${food.fat_g},'${food.name}')">Edit Manually</button>
+          </div>
+        </div>`;
+    } catch(err) {
+      resultEl.innerHTML = '<div style="color:var(--red);font-size:13px">Could not analyze photo. Try manually logging.</div>';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+function editFoodAI(cal,p,c,f,name) {
+  document.getElementById('foodName').value=name;
+  document.getElementById('foodCal').value=Math.round(cal);
+  document.getElementById('foodProtein').value=Math.round(p);
+  document.getElementById('foodCarbs').value=Math.round(c);
+  document.getElementById('foodFat').value=Math.round(f);
+  document.getElementById('tab-nutrition').scrollTop=0;
+}
+
+// ═══════════════════════════════════════════
+// FINANCE
+// ═══════════════════════════════════════════
+let pieChartInst = null;
+function addAsset() {
+  const name=document.getElementById('assetName').value.trim();
+  const value=parseFloat(document.getElementById('assetVal').value)||0;
+  const type=document.getElementById('assetType').value;
+  if(!name||!value) return;
+  S.assets.push({name,value,type});
+  ['assetName','assetVal'].forEach(id=>document.getElementById(id).value='');
+  renderAssets(); renderNetWorthSnapshot(); buildTicker(); save();
+}
+function renderAssets() {
+  const el=document.getElementById('assetList');
+  if(!el) return;
+  const total=S.assets.reduce((a,b)=>a+parseFloat(b.value),0);
+  document.getElementById('netWorthTotal').textContent='$'+total.toLocaleString();
+  document.getElementById('onePercent').textContent='$'+(total*0.01).toLocaleString(undefined,{maximumFractionDigits:0});
+  el.innerHTML=S.assets.map((a,i)=>`
+    <div class="asset-row">
+      <div>
+        <div class="asset-name">${a.name}</div>
+        <div style="font-size:11px;color:var(--text3)">${a.type}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="asset-val">$${parseFloat(a.value).toLocaleString()}</span>
+        <span style="font-size:11px;color:var(--text3)">${((a.value/total)*100).toFixed(1)}%</span>
+        <button class="btn-icon" style="font-size:12px" onclick="removeAsset(${i})">✕</button>
+      </div>
+    </div>`).join('');
+  renderPieChart();
+}
+function removeAsset(i) { S.assets.splice(i,1); renderAssets(); renderNetWorthSnapshot(); save(); }
+function renderNetWorthSnapshot() {
+  const el=document.getElementById('netWorthSnapshot');
+  if(!el) return;
+  const total=S.assets.reduce((a,b)=>a+parseFloat(b.value),0);
+  const categories={cash:0,invest:0,crypto:0,other:0};
+  S.assets.forEach(a=>categories[a.type]=(categories[a.type]||0)+parseFloat(a.value));
+  el.innerHTML=`
+    <div class="stat"><div class="stat-val" style="color:var(--green)">$${total.toLocaleString()}</div><div class="stat-label">Net Worth</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--accent5)">$${(categories.cash||0).toLocaleString()}</div><div class="stat-label">Cash</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--accent)">$${(categories.invest||0).toLocaleString()}</div><div class="stat-label">Investments</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--accent4)">$${(categories.crypto||0).toLocaleString()}</div><div class="stat-label">Crypto</div></div>`;
+}
+function renderPieChart() {
+  const canvas=document.getElementById('pieChart');
+  if(!canvas||!S.assets.length) return;
+  if(pieChartInst) pieChartInst.destroy();
+  const colors=['#7c6fff','#00d4aa','#ff6b9d','#ffb347','#4fc3f7','#2ed573'];
+  pieChartInst = new Chart(canvas, {
+    type:'doughnut',
+    data:{
+      labels:S.assets.map(a=>a.name),
+      datasets:[{data:S.assets.map(a=>a.value), backgroundColor:S.assets.map((_,i)=>colors[i%colors.length]), borderWidth:0}]
+    },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, cutout:'65%'}
+  });
+}
+function addIncome() {
+  const name=document.getElementById('incomeName').value.trim();
+  const amount=parseFloat(document.getElementById('incomeAmt').value)||0;
+  if(!name||!amount) return;
+  S.income.push({name,amount,date:new Date().toLocaleDateString()});
+  document.getElementById('incomeName').value=''; document.getElementById('incomeAmt').value='';
+  renderIncome(); renderCashFlow(); save();
+}
+function renderIncome() {
+  const el=document.getElementById('incomeList');
+  if(!el) return;
+  const total=S.income.reduce((a,b)=>a+b.amount,0);
+  document.getElementById('totalIncome').textContent='$'+total.toLocaleString();
+  el.innerHTML=S.income.map((inc,i)=>`
+    <div class="asset-row">
+      <div>
+        <div class="asset-name">${inc.name}</div>
+        <div style="font-size:11px;color:var(--text3)">${inc.date}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="asset-val" style="color:var(--green)">+$${inc.amount.toLocaleString()}</span>
+        <button class="btn-icon" style="font-size:12px" onclick="removeIncome(${i})">✕</button>
+      </div>
+    </div>`).join('');
+}
+function removeIncome(i) { S.income.splice(i,1); renderIncome(); renderCashFlow(); save(); }
+function addSubscription() {
+  const name=document.getElementById('subName').value.trim();
+  const amount=parseFloat(document.getElementById('subAmt').value)||0;
+  const date=document.getElementById('subDate').value;
+  if(!name||!amount) return;
+  S.subscriptions.push({name,amount,date});
+  ['subName','subAmt','subDate'].forEach(id=>document.getElementById(id).value='');
+  renderSubscriptions(); renderCashFlow(); buildTicker(); save();
+}
+function renderSubscriptions() {
+  const el=document.getElementById('subList');
+  if(!el) return;
+  const now=new Date();
+  el.innerHTML=S.subscriptions.map((sub,i)=>{
+    const daysLeft=sub.date?Math.ceil((new Date(sub.date)-now)/(1000*60*60*24)):-1;
+    const urgent=daysLeft>=0&&daysLeft<=3;
+    return `<div class="asset-row ${urgent?'':''}">
+      <div>
+        <div class="asset-name">${sub.name} ${urgent?'<span class="notif-dot"></span>':''}</div>
+        ${sub.date?`<div style="font-size:11px;color:${urgent?'var(--red)':'var(--text3)'}">Next billing: ${sub.date} ${daysLeft>=0?`(${daysLeft}d)`:'(expired)'}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="asset-val" style="color:var(--red)">-$${sub.amount}/mo</span>
+        <button class="btn-icon" style="font-size:12px" onclick="removeSub(${i})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function removeSub(i) { S.subscriptions.splice(i,1); renderSubscriptions(); renderCashFlow(); buildTicker(); save(); }
+function addGoal() {
+  const name=document.getElementById('goalName').value.trim();
+  const target=parseFloat(document.getElementById('goalTarget').value)||0;
+  const current=parseFloat(document.getElementById('goalCurrent').value)||0;
+  const deadline=document.getElementById('goalDeadline').value;
+  if(!name||!target) return;
+  S.goals.push({name,target,current,deadline});
+  ['goalName','goalTarget','goalCurrent','goalDeadline'].forEach(id=>document.getElementById(id).value='');
+  renderGoals(); save();
+}
+function renderGoals() {
+  const el=document.getElementById('goalList');
+  if(!el) return;
+  el.innerHTML=S.goals.map((g,i)=>{
+    const pct=Math.min(100,Math.round(g.current/g.target*100));
+    const daysLeft=g.deadline?Math.ceil((new Date(g.deadline)-new Date())/(1000*60*60*24)):-1;
+    return `<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-weight:500;font-size:13px">${g.name}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:var(--text3)">${g.deadline?`${daysLeft}d left`:''}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--accent3)">$${g.current.toLocaleString()} / $${g.target.toLocaleString()}</span>
+          <button class="btn-icon" style="font-size:12px" onclick="removeGoal(${i})">✕</button>
+        </div>
+      </div>
+      <div class="goal-bar"><div class="goal-bar-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">${pct}% complete</div>
+    </div>`;
+  }).join('');
+}
+function removeGoal(i) { S.goals.splice(i,1); renderGoals(); save(); }
+function renderCashFlow() {
+  const el=document.getElementById('cashFlow');
+  if(!el) return;
+  const income=S.income.reduce((a,b)=>a+b.amount,0);
+  const expenses=S.subscriptions.reduce((a,b)=>a+b.amount,0);
+  const net=income-expenses;
+  el.innerHTML=`
+    <div class="stat"><div class="stat-val" style="color:var(--green)">$${income.toLocaleString()}</div><div class="stat-label">Total Income</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--red)">-$${expenses.toLocaleString()}</div><div class="stat-label">Subscriptions</div></div>
+    <div class="stat"><div class="stat-val" style="color:${net>=0?'var(--accent3)':'var(--red)'}">$${net.toLocaleString()}</div><div class="stat-label">Net Cash Flow</div></div>`;
+}
+
+// ═══════════════════════════════════════════
+// JOURNAL
+// ═══════════════════════════════════════════
+const JOURNAL_ICONS = {journal:'📓', pr:'🏆', mood:'😊', note:'📝'};
+function addJournalEntry() {
+  const text=document.getElementById('journalInput').value.trim();
+  const type=document.getElementById('journalType').value;
+  if(!text) return;
+  S.journalEntries.unshift({text,type,date:new Date().toLocaleString()});
+  document.getElementById('journalInput').value='';
+  S.streaks.journal=(S.streaks.journal||0)+1;
+  renderJournal(); renderStreaks(); save();
+}
+function renderJournal() {
+  const el=document.getElementById('journalList');
+  if(!el) return;
+  if(!S.journalEntries.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">No entries yet.</div>';return;}
+  el.innerHTML=S.journalEntries.map((e,i)=>`
+    <div class="journal-entry" style="border-color:${e.type==='pr'?'var(--accent4)':e.type==='mood'?'var(--accent2)':e.type==='note'?'var(--accent3)':'var(--accent)'}">
+      <div class="journal-date">${JOURNAL_ICONS[e.type]||'📓'} ${e.type.toUpperCase()} · ${e.date}</div>
+      <div class="journal-text">${e.text}</div>
+      <button class="btn-icon" style="font-size:12px;margin-top:8px" onclick="removeJournal(${i})">✕ Delete</button>
+    </div>`).join('');
+}
+function removeJournal(i){S.journalEntries.splice(i,1);renderJournal();save();}
+
+// ═══════════════════════════════════════════
+// CUSTOM TICKER
+// ═══════════════════════════════════════════
+function addCustomTicker() {
+  const msg=document.getElementById('customTickerInput').value.trim();
+  if(!msg) return;
+  S.customTickers.push(msg);
+  document.getElementById('customTickerInput').value='';
+  renderCustomTickers(); buildTicker(); save();
+}
+function renderCustomTickers() {
+  const el=document.getElementById('customTickerList');
+  if(!el) return;
+  el.innerHTML=S.customTickers.map((m,i)=>`
+    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px">
+      📌 ${m}
+      <button onclick="removeCustomTicker(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0">✕</button>
+    </div>`).join('');
+}
+function removeCustomTicker(i){S.customTickers.splice(i,1);renderCustomTickers();buildTicker();save();}
+
+// ═══════════════════════════════════════════
+// AI ASSISTANT
+// ═══════════════════════════════════════════
+function buildDashboardContext() {
+  const nw = S.assets.reduce((a,b)=>a+parseFloat(b.value||0),0);
+  const totCal = S.meals.reduce((a,m)=>a+m.cal,0);
+  const totP = S.meals.reduce((a,m)=>a+m.protein,0);
+  const suppDone = S.supplements.filter(s=>s.checked).length;
+  const lastSleep = S.sleep.length ? S.sleep[S.sleep.length-1] : null;
+  return `You are a personal health, fitness, and finance assistant. Here is the user's current dashboard data:
+- Water intake: ${S.water}ml of ${S.waterGoal}ml goal
+- Supplements taken today: ${suppDone}/${S.supplements.length}
+- Sleep last night: ${lastSleep ? lastSleep.hours.toFixed(1)+'hrs' : 'not logged'}
+- Today's calories: ${Math.round(totCal)} kcal, Protein: ${Math.round(totP)}g
+- Weight entries: ${S.weights.length} logged, latest: ${S.weights.length ? S.weights[S.weights.length-1].value+'kg' : 'none'}
+- Workout streak: ${S.streaks.workout} days, Water streak: ${S.streaks.water} days
+- Net worth: $${nw.toLocaleString()}
+- Current exercises today: ${S.exercises.map(e=>e.name).join(', ')||'none'}
+- Personal records: ${Object.entries(S.prs).map(([k,v])=>`${k}: ${v}kg`).join(', ')||'none'}
+Be helpful, motivating, specific to their data, and concise.`;
+}
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value='';
+  appendMessage('user', msg);
+  S.chatHistory.push({role:'user', content:msg});
+  const typingEl = appendMessage('typing', '');
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system: buildDashboardContext(),
+        messages: S.chatHistory.slice(-10)
+      })
+    });
+    const data = await resp.json();
+    const reply = data.content.map(c=>c.text||'').join('');
+    typingEl.remove();
+    appendMessage('ai', reply);
+    S.chatHistory.push({role:'assistant', content:reply});
+    if(S.chatHistory.length>20) S.chatHistory=S.chatHistory.slice(-20);
+  } catch(e) {
+    typingEl.remove();
+    appendMessage('ai', 'Sorry, I had trouble connecting. Check that you\'re using a Vercel/local deployment with API access.');
+  }
+}
+function appendMessage(role, text) {
+  const container = document.getElementById('chatMessages');
+  const el = document.createElement('div');
+  if(role==='typing') {
+    el.className='typing';
+    el.innerHTML='<span></span><span></span><span></span>';
+  } else {
+    el.className='chat-msg '+role;
+    el.textContent=text;
+  }
+  container.appendChild(el);
+  container.scrollTop=container.scrollHeight;
+  return el;
+}
+function quickChat(msg) {
+  document.getElementById('chatInput').value=msg;
+  sendChat();
+}
+
+// ═══════════════════════════════════════════
+// HEIGHT TRACKER
+// ═══════════════════════════════════════════
+let heightChartInst = null;
+function renderHeightUI() {
+  const unit = document.getElementById('heightUnit').value;
+  const area = document.getElementById('heightInputArea');
+  if(unit === 'cm') {
+    area.innerHTML = `<div class="form-row">
+      <div class="form-group"><label>Height (cm)</label><input type="number" id="heightCm" placeholder="175" step="0.1"/></div>
+      <button class="btn btn-accent" onclick="logHeight()" style="align-self:flex-end">Log</button>
+    </div>`;
+  } else {
+    area.innerHTML = `<div class="form-row">
+      <div class="form-group" style="max-width:90px"><label>Feet</label><input type="number" id="heightFt" placeholder="5" min="0" max="9"/></div>
+      <div class="form-group" style="max-width:90px"><label>Inches</label><input type="number" id="heightIn" placeholder="11" min="0" max="11"/></div>
+      <button class="btn btn-accent" onclick="logHeight()" style="align-self:flex-end">Log</button>
+    </div>`;
+  }
+}
+function logHeight() {
+  const unit = document.getElementById('heightUnit').value;
+  let cm;
+  if(unit === 'cm') {
+    cm = parseFloat(document.getElementById('heightCm').value);
+  } else {
+    const ft = parseFloat(document.getElementById('heightFt').value)||0;
+    const inc = parseFloat(document.getElementById('heightIn').value)||0;
+    cm = (ft * 30.48) + (inc * 2.54);
+  }
+  if(!cm || cm < 50 || cm > 280) return;
+  S.heights = S.heights || [];
+  S.heights.push({date: new Date().toLocaleDateString(), cm: parseFloat(cm.toFixed(1))});
+  renderHeightLog();
+  renderHeightChart();
+  calcBMI();
+  save();
+}
+function renderHeightLog() {
+  const el = document.getElementById('heightLog');
+  if(!el) return;
+  S.heights = S.heights || [];
+  if(!S.heights.length) { el.innerHTML='<div style="color:var(--text3);font-size:13px">No height logged yet.</div>'; return; }
+  el.innerHTML = [...S.heights].reverse().map((h,i) => {
+    const totalIn = h.cm / 2.54;
+    const ft = Math.floor(totalIn/12);
+    const inch = Math.round(totalIn % 12);
+    return `<div class="weight-entry">
+      <span class="weight-date">${h.date}</span>
+      <span class="weight-val">${h.cm} cm <span style="color:var(--text3);font-size:11px">(${ft}'${inch}")</span></span>
+    </div>`;
+  }).join('');
+}
+function renderHeightChart() {
+  const canvas = document.getElementById('heightChart');
+  if(!canvas) return;
+  S.heights = S.heights || [];
+  if(!S.heights.length) return;
+  if(heightChartInst) heightChartInst.destroy();
+  heightChartInst = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: S.heights.map(h=>h.date),
+      datasets: [{ label:'Height (cm)', data: S.heights.map(h=>h.cm), borderColor:'#00d4aa', backgroundColor:'rgba(0,212,170,0.1)', fill:true, tension:0.3, pointRadius:4 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{ticks:{color:'#8888aa',callback:v=>v+'cm'}}, x:{ticks:{color:'#8888aa',maxRotation:45}}} }
+  });
+}
+function calcBMI() {
+  S.heights = S.heights || [];
+  if(!S.heights.length || !S.weights.length) return;
+  const hCm = S.heights[S.heights.length-1].cm;
+  const wKg = S.weights[S.weights.length-1].value;
+  const bmi = wKg / Math.pow(hCm/100, 2);
+  const el = document.getElementById('bmiVal');
+  const lbl = document.getElementById('bmiLabel');
+  if(!el) return;
+  el.textContent = bmi.toFixed(1);
+  let cat, col;
+  if(bmi<18.5){cat='Underweight';col='var(--accent5)';}
+  else if(bmi<25){cat='Normal';col='var(--green)';}
+  else if(bmi<30){cat='Overweight';col='var(--accent4)';}
+  else{cat='Obese';col='var(--red)';}
+  el.style.color = col;
+  if(lbl) lbl.textContent = cat + ' · ' + hCm + 'cm / ' + wKg + 'kg';
+}
+
+// ═══════════════════════════════════════════
+// STOCKS
+// ═══════════════════════════════════════════
+const DEFAULT_STOCKS = ['AAPL','MSFT','GOOGL','AMZN','NVDA','TSLA','META','SPY','BTC-USD','ETH-USD'];
+let stockPeriod = '1D';
+let stockDetailChartInst = null;
+let stockCache = {};
+
+function setStockPeriod(p, btn) {
+  stockPeriod = p;
+  document.querySelectorAll('[data-period]').forEach(b => b.style.background = '');
+  btn.style.background = 'var(--accent)';
+  btn.style.color = '#fff';
+  btn.style.borderColor = 'var(--accent)';
+  document.querySelectorAll('[data-period]').forEach(b => {
+    if(b !== btn) { b.style.color = ''; b.style.borderColor = ''; }
+  });
+  loadAllStocks();
+}
+
+function yahooInterval(period) {
+  if(period==='1D') return {range:'1d', interval:'5m'};
+  if(period==='7D') return {range:'5d', interval:'1h'};
+  if(period==='1M') return {range:'1mo', interval:'1d'};
+  return {range:'1y', interval:'1wk'};
+}
+
+async function fetchStockData(symbol) {
+  const {range, interval} = yahooInterval(stockPeriod);
+  const cacheKey = `${symbol}_${stockPeriod}`;
+  if(stockCache[cacheKey] && Date.now()-stockCache[cacheKey].ts < 60000) return stockCache[cacheKey].data;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}&includePrePost=false`;
+  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  const resp = await fetch(proxyUrl);
+  const outer = await resp.json();
+  const parsed = JSON.parse(outer.contents);
+  const result = parsed.chart.result[0];
+  const meta = result.meta;
+  const timestamps = result.timestamp || [];
+  const closes = result.indicators.quote[0].close || [];
+  const data = { symbol, price: meta.regularMarketPrice, prev: meta.chartPreviousClose, timestamps, closes, currency: meta.currency, name: meta.shortName || symbol };
+  stockCache[cacheKey] = {data, ts: Date.now()};
+  return data;
+}
+
+async function loadAllStocks() {
+  S.watchlist = S.watchlist || [...DEFAULT_STOCKS];
+  const grid = document.getElementById('stockGrid');
+  const loadEl = document.getElementById('stockLoading');
+  const errEl = document.getElementById('stockError');
+  loadEl.style.display = 'block';
+  errEl.style.display = 'none';
+  grid.innerHTML = '';
+  const results = await Promise.allSettled(S.watchlist.map(s => fetchStockData(s)));
+  loadEl.style.display = 'none';
+  let hasError = false;
+  results.forEach((res, i) => {
+    if(res.status === 'fulfilled') {
+      grid.appendChild(buildStockCard(res.value));
+    } else {
+      hasError = true;
+      const sym = S.watchlist[i];
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.style.background = 'var(--bg3)';
+      div.innerHTML = `<div style="font-weight:600">${sym}</div><div style="color:var(--red);font-size:12px">Failed to load</div>`;
+      grid.appendChild(div);
+    }
+  });
+  if(hasError) {
+    errEl.style.display = 'block';
+    errEl.textContent = '⚠ Some stocks failed. This uses a free CORS proxy — if many fail, try refreshing in a moment. Crypto tickers use format BTC-USD.';
+  }
+}
+
+function buildStockCard(data) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.style.cssText = 'background:var(--bg3);cursor:pointer;transition:border 0.2s';
+  div.onclick = () => showStockDetail(data);
+  const change = data.price - data.prev;
+  const changePct = (change/data.prev*100);
+  const isUp = change >= 0;
+  const col = isUp ? 'var(--green)' : 'var(--red)';
+  const sparkData = data.closes.filter(Boolean).slice(-20);
+  const sparkMin = Math.min(...sparkData);
+  const sparkMax = Math.max(...sparkData);
+  const sparkPts = sparkData.map((v,i) => {
+    const x = (i/(sparkData.length-1||1))*80;
+    const y = 20 - ((v-sparkMin)/(sparkMax-sparkMin||1))*18;
+    return `${x},${y}`;
+  }).join(' ');
+  div.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600">${data.symbol}</div>
+        <div style="font-size:11px;color:var(--text3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${data.name}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700">${data.currency==='USD'?'$':''}${data.price.toFixed(2)}</div>
+        <div style="font-size:12px;color:${col};font-weight:600">${isUp?'+':''}${change.toFixed(2)} (${isUp?'+':''}${changePct.toFixed(2)}%)</div>
+      </div>
+    </div>
+    ${sparkData.length>1?`<svg viewBox="0 0 80 22" width="100%" height="28" style="margin-top:8px"><polyline points="${sparkPts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/></svg>`:''}
+    <div style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right">Click for ${stockPeriod} chart</div>
+  `;
+  return div;
+}
+
+async function showStockDetail(data) {
+  document.getElementById('stockDetailTitle').textContent = `📊 ${data.symbol} — ${data.name} (${stockPeriod})`;
+  const canvas = document.getElementById('stockDetailChart');
+  if(stockDetailChartInst) stockDetailChartInst.destroy();
+  const closes = data.closes.filter(Boolean);
+  const timestamps = data.timestamps.filter((_,i)=>data.closes[i]!=null);
+  const labels = timestamps.map(t => {
+    const d = new Date(t*1000);
+    if(stockPeriod==='1D') return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    if(stockPeriod==='7D') return d.toLocaleDateString([],{weekday:'short',hour:'2-digit',minute:'2-digit'});
+    return d.toLocaleDateString([],{month:'short',day:'numeric'});
+  });
+  const isUp = closes[closes.length-1] >= closes[0];
+  const col = isUp ? '#2ed573' : '#ff4757';
+  stockDetailChartInst = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: data.symbol,
+        data: closes,
+        borderColor: col,
+        backgroundColor: isUp ? 'rgba(46,213,115,0.08)' : 'rgba(255,71,87,0.08)',
+        fill: true, tension: 0.2, pointRadius: 0, borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:false}, tooltip:{mode:'index',intersect:false,callbacks:{label:ctx=>`$${ctx.parsed.y.toFixed(2)}`}} },
+      scales: {
+        x: { ticks:{color:'#8888aa',maxRotation:45,maxTicksLimit:10}, grid:{color:'rgba(255,255,255,0.04)'} },
+        y: { ticks:{color:'#8888aa',callback:v=>'$'+v.toFixed(0)}, grid:{color:'rgba(255,255,255,0.04)'} }
+      }
+    }
+  });
+  canvas.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function addWatchlistStock() {
+  const sym = document.getElementById('stockSearchInput').value.trim().toUpperCase();
+  if(!sym) return;
+  S.watchlist = S.watchlist || [...DEFAULT_STOCKS];
+  if(S.watchlist.includes(sym)) return;
+  S.watchlist.push(sym);
+  document.getElementById('stockSearchInput').value = '';
+  save();
+  loadAllStocks();
+}
+
+// ═══════════════════════════════════════════
+// REMINDERS + PUSH NOTIFICATIONS
+// ═══════════════════════════════════════════
+const REM_ICONS = {health:'💊',gym:'🏋️',water:'💧',finance:'💰',sleep:'😴',custom:'📌'};
+
+async function enableNotifications() {
+  if(!('Notification' in window)) { updateNotifStatus('Notifications not supported in this browser.','red'); return; }
+  const perm = await Notification.requestPermission();
+  updateNotifStatus();
+  save();
+}
+
+function updateNotifStatus() {
+  const el = document.getElementById('notifStatus');
+  const btn = document.getElementById('notifEnableBtn');
+  if(!('Notification' in window)) {
+    el.textContent = '❌ This browser does not support notifications.';
+    el.style.color = 'var(--red)';
+    return;
+  }
+  if(Notification.permission === 'granted') {
+    el.innerHTML = '✅ Notifications enabled! Reminders will fire at their scheduled times.';
+    el.style.color = 'var(--green)';
+    btn.style.display = 'none';
+  } else if(Notification.permission === 'denied') {
+    el.innerHTML = '🚫 Notifications blocked. Please enable them in your browser/phone settings, then refresh.';
+    el.style.color = 'var(--red)';
+    btn.style.display = 'none';
+  } else {
+    el.innerHTML = '🔔 Enable notifications to get reminders on your phone.';
+    el.style.color = 'var(--text2)';
+    btn.style.display = 'inline-flex';
+  }
+}
+
+function addReminder() {
+  const title = document.getElementById('remTitle').value.trim();
+  const time = document.getElementById('remTime').value;
+  const repeat = document.getElementById('remRepeat').value;
+  const category = document.getElementById('remCategory').value;
+  const note = document.getElementById('remNote').value.trim();
+  if(!title||!time) return;
+  S.reminders = S.reminders || [];
+  S.reminders.push({id:Date.now(), title, time, repeat, category, note, active:true});
+  ['remTitle','remNote'].forEach(id=>document.getElementById(id).value='');
+  renderReminders(); save();
+  scheduleAllReminders();
+}
+
+function quickReminder(title, time, category) {
+  S.reminders = S.reminders || [];
+  S.reminders.push({id:Date.now(), title, time, repeat:'daily', category, note:'', active:true});
+  renderReminders(); save();
+  scheduleAllReminders();
+}
+
+function removeReminder(id) {
+  S.reminders = (S.reminders||[]).filter(r=>r.id!==id);
+  renderReminders(); save();
+}
+
+function toggleReminder(id) {
+  const r = (S.reminders||[]).find(r=>r.id===id);
+  if(r) r.active = !r.active;
+  renderReminders(); save();
+  scheduleAllReminders();
+}
+
+function renderReminders() {
+  const el = document.getElementById('reminderList');
+  if(!el) return;
+  S.reminders = S.reminders || [];
+  if(!S.reminders.length) { el.innerHTML='<div style="color:var(--text3);font-size:13px">No reminders yet. Add some above.</div>'; return; }
+  const sorted = [...S.reminders].sort((a,b)=>a.time.localeCompare(b.time));
+  el.innerHTML = sorted.map(r => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg3);border-radius:10px;margin-bottom:8px;border:1px solid ${r.active?'var(--border)':'var(--border2)'};opacity:${r.active?1:0.5}">
+      <div style="font-size:20px">${REM_ICONS[r.category]||'📌'}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${r.title}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${r.time} · ${r.repeat}${r.note?' · '+r.note:''}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="pill ${r.active?'pill-green':'pill-red'}" style="cursor:pointer" onclick="toggleReminder(${r.id})">${r.active?'ON':'OFF'}</span>
+        <button class="btn-icon" style="font-size:12px" onclick="removeReminder(${r.id})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+let reminderTimers = [];
+function scheduleAllReminders() {
+  reminderTimers.forEach(t=>clearTimeout(t));
+  reminderTimers = [];
+  if(Notification.permission !== 'granted') return;
+  (S.reminders||[]).filter(r=>r.active).forEach(r => {
+    scheduleReminder(r);
+  });
+}
+
+function scheduleReminder(r) {
+  const now = new Date();
+  const [h,m] = r.time.split(':').map(Number);
+  let next = new Date();
+  next.setHours(h,m,0,0);
+  if(next <= now) next.setDate(next.getDate()+1);
+  if(r.repeat==='weekdays') {
+    while(next.getDay()===0||next.getDay()===6) next.setDate(next.getDate()+1);
+  }
+  if(r.repeat==='weekends') {
+    while(next.getDay()!==0&&next.getDay()!==6) next.setDate(next.getDate()+1);
+  }
+  const ms = next - now;
+  const t = setTimeout(() => {
+    fireNotification(r);
+    if(r.repeat !== 'once') scheduleReminder(r);
+  }, ms);
+  reminderTimers.push(t);
+}
+
+function fireNotification(r) {
+  if(Notification.permission !== 'granted') return;
+  new Notification(`${REM_ICONS[r.category]||''} ${r.title}`, {
+    body: r.note || `Scheduled at ${r.time}`,
+    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="26" font-size="28">⚡</text></svg>',
+    badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="26" font-size="28">⚡</text></svg>',
+    tag: String(r.id),
+    renotify: true
+  });
+}
+
+function testNotification() {
+  if(Notification.permission !== 'granted') { enableNotifications(); return; }
+  new Notification('⚡ Dashboard Test', {body:'Notifications are working!'});
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+function init() {
+  load();
+  loadQuote();
+  updateWaterUI();
+  renderStreaks();
+  renderSupplements();
+  renderWeightLog();
+  renderHeightLog();
+  renderHeightChart();
+  calcBMI();
+  renderSleep();
+  renderOverviewSleep();
+  renderExercises();
+  renderWorkoutHistory();
+  renderPRs();
+  renderMacros();
+  renderMealLog();
+  renderAssets();
+  renderNetWorthSnapshot();
+  renderIncome();
+  renderSubscriptions();
+  renderGoals();
+  renderCashFlow();
+  renderJournal();
+  renderCustomTickers();
+  renderReminders();
+  buildTicker();
+  updateNotifStatus();
+  scheduleAllReminders();
+  setInterval(buildTicker, 60000);
+
+  // Reset water/supps daily
+  const today = new Date().toDateString();
+  const lastReset = localStorage.getItem('dashv2_lastReset');
+  if(lastReset !== today) {
+    S.water = 0;
+    S.supplements.forEach(s=>s.checked=false);
+    S.meals=[];
+    localStorage.setItem('dashv2_lastReset', today);
+    save();
+    updateWaterUI();
+    renderSupplements();
+    renderMacros();
+    renderMealLog();
+  }
+
+  // Init stocks tab period button style
+  const firstPeriodBtn = document.querySelector('[data-period="1D"]');
+  if(firstPeriodBtn) {
+    firstPeriodBtn.style.background='var(--accent)';
+    firstPeriodBtn.style.color='#fff';
+    firstPeriodBtn.style.borderColor='var(--accent)';
+  }
+}
+init();
+</script>
+</body>
+</html>
